@@ -1,0 +1,60 @@
+use axum::{
+    http::Method,
+    routing::{get, post},
+    Router,
+};
+use stressor_leads::{
+    db::{create_pool, run_migrations},
+    handlers::*,
+};
+use tower_http::cors::{Any, CorsLayer};
+
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
+    // Load environment variables
+    dotenv::dotenv().ok();
+
+    // Create database pool
+    let pool = create_pool().await?;
+    println!("Connected to database successfully!");
+
+    // Run migrations
+    run_migrations(&pool).await?;
+    println!("Migrations completed successfully!");
+
+    // Build CORS layer
+    let cors = CorsLayer::new()
+        .allow_origin(Any)
+        .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
+        .allow_headers(Any);
+
+    // Build application with routes
+    let app = Router::new()
+        .route("/api/health", get(health_check))
+        .route("/api/dealers/register", post(register_dealer))
+        .route("/api/dealers/login", post(login_dealer))
+        .route("/api/dealers/me", get(get_dealer_profile))
+        .route("/api/uploads", post(upload_file))
+        .route("/api/uploads", get(list_uploads))
+        .route("/api/uploads/:id", get(get_upload))
+        .route("/api/vehicles", get(list_vehicles))
+        .route("/api/vehicles/:id", get(get_vehicle))
+        .route("/api/scored-leads", get(list_scored_leads))
+        .route("/api/scored-leads/:id", get(get_scored_lead))
+        .layer(cors)
+        .with_state(pool);
+
+    // Start server
+    let port = std::env::var("PORT").unwrap_or_else(|_| "3000".to_string());
+    let addr = format!("0.0.0.0:{}", port);
+    println!("Server running on http://{}", addr);
+
+    let listener = tokio::net::TcpListener::bind(&addr).await?;
+    axum::serve(listener, app).await?;
+
+    Ok(())
+}
+
+async fn health_check() -> &'static str {
+    "OK"
+}
