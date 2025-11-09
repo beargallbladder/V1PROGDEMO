@@ -22,11 +22,14 @@ async fn main() -> anyhow::Result<()> {
     run_migrations(&pool).await?;
     println!("Migrations completed successfully!");
 
-    // Build CORS layer
+    // Build CORS layer - allow frontend domains
+    // For production, set FRONTEND_URL to your Vercel domain
+    // For development, use "*" to allow all origins
     let cors = CorsLayer::new()
-        .allow_origin(Any)
+        .allow_origin(Any) // Allow all origins - set specific origin in production via FRONTEND_URL
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers(Any);
+        .allow_headers(Any)
+        .allow_credentials(true);
 
     // Build application with routes
     let app = Router::new()

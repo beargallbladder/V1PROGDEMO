@@ -1,1 +1,26 @@
-/target
+# Rust
+target/
+Cargo.lock
+
+# Environment
+.env
+.env.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Uploads
+uploads/
+*.csv
+*.xlsx
+
+# Logs
+*.log

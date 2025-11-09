@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: stressor-leads-api
+    env: rust
+    buildCommand: cargo build --release
+    startCommand: ./target/release/stressor-leads
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PORT
+        value: 10000
+    healthCheckPath: /api/health
+
+databases:
+  - name: stressor-leads-db
+    databaseName: stressor_leads
+    user: stressor_leads
+    plan: free
+
