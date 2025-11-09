@@ -25,10 +25,16 @@ async fn main() -> anyhow::Result<()> {
     // Build CORS layer - allow frontend domains
     // For production, set FRONTEND_URL to your Vercel domain
     // For development, use "*" to allow all origins
+    // Note: When allow_credentials(true), cannot use allow_headers(Any) - must specify headers explicitly
     let cors = CorsLayer::new()
         .allow_origin(Any) // Allow all origins - set specific origin in production via FRONTEND_URL
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
-        .allow_headers(Any)
+        .allow_headers([
+            axum::http::header::CONTENT_TYPE,
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::ACCEPT,
+            axum::http::header::ACCEPT_LANGUAGE,
+        ])
         .allow_credentials(true);
 
     // Build application with routes

@@ -14,7 +14,6 @@ use std::fs;
 use std::path::Path as StdPath;
 use tokio::fs::File;
 use tokio::io::AsyncWriteExt;
-use futures::StreamExt;
 
 // Helper function to get dealer from token
 async fn get_dealer_from_request(
@@ -374,11 +373,11 @@ pub async fn list_scored_leads(
     let mut query = "SELECT sl.id, sl.vehicle_id, sl.upload_id, sl.urgency_score, sl.stressor_score, sl.warranty_score, sl.susceptibility_score, sl.telematic_score, sl.has_telematic, sl.stressor_type, sl.why_now, sl.call_by_date, sl.suggested_script, sl.created_at, v.id, v.upload_id, v.dealer_id, v.vin, v.warranty_exp_date, v.customer_name, v.customer_phone, v.customer_email, v.customer_zip, v.last_service_date, v.created_at FROM scored_leads sl JOIN vehicles v ON sl.vehicle_id = v.id WHERE v.dealer_id = $1".to_string();
 
     let mut bind_count = 1;
-    if let Some(upload_id) = upload_id {
+    if upload_id.is_some() {
         bind_count += 1;
         query.push_str(&format!(" AND sl.upload_id = ${}", bind_count));
     }
-    if let Some(_) = min_score {
+    if min_score.is_some() {
         bind_count += 1;
         query.push_str(&format!(" AND sl.urgency_score >= ${}", bind_count));
     }
@@ -386,8 +385,8 @@ pub async fn list_scored_leads(
     query.push_str(&format!(" LIMIT ${}", bind_count + 1));
 
     let mut query_builder = sqlx::query(&query).bind(dealer.id);
-    if let Some(upload_id) = upload_id {
-        query_builder = query_builder.bind(upload_id);
+    if let Some(upload_id_val) = upload_id {
+        query_builder = query_builder.bind(upload_id_val);
     }
     if let Some(min_score) = min_score {
         query_builder = query_builder.bind(min_score);
