@@ -27,7 +27,7 @@ async fn main() -> anyhow::Result<()> {
     // Must specify both origin and headers explicitly
     let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "https://stressor-leads-frontend-1jwz0mzvn-sams-projects-bf92499c.vercel.app".to_string());
     let cors = CorsLayer::new()
-        .allow_origin(frontend_url.parse().unwrap()) // Use specific origin from FRONTEND_URL
+        .allow_origin(frontend_url.parse::<axum::http::HeaderValue>().unwrap()) // Use specific origin from FRONTEND_URL
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers([
             axum::http::header::CONTENT_TYPE,
