@@ -7,7 +7,7 @@ use stressor_leads::{
     db::{create_pool, run_migrations},
     handlers::*,
 };
-use tower_http::cors::{Any, CorsLayer};
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -23,11 +23,11 @@ async fn main() -> anyhow::Result<()> {
     println!("Migrations completed successfully!");
 
     // Build CORS layer - allow frontend domains
-    // For production, set FRONTEND_URL to your Vercel domain
-    // For development, use "*" to allow all origins
-    // Note: When allow_credentials(true), cannot use allow_headers(Any) - must specify headers explicitly
+    // Note: When allow_credentials(true), cannot use allow_origin(Any) or allow_headers(Any)
+    // Must specify both origin and headers explicitly
+    let frontend_url = std::env::var("FRONTEND_URL").unwrap_or_else(|_| "https://stressor-leads-frontend-1jwz0mzvn-sams-projects-bf92499c.vercel.app".to_string());
     let cors = CorsLayer::new()
-        .allow_origin(Any) // Allow all origins - set specific origin in production via FRONTEND_URL
+        .allow_origin(frontend_url.parse().unwrap()) // Use specific origin from FRONTEND_URL
         .allow_methods([Method::GET, Method::POST, Method::PUT, Method::DELETE])
         .allow_headers([
             axum::http::header::CONTENT_TYPE,
